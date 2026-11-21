@@ -6,7 +6,7 @@
 #  - pas de « build: » : rien à compiler sur le VPS, les mises à jour sont un simple Redeploy ;
 #  - volumes nommés : les données survivent aux redéploiements et sont sauvegardables par Coolify.
 #
-# Dans Coolify, sur le service « web », mettre le domaine : https://gym.aguiar-home.fr
+# Dans Coolify, sur le service « web », mettre le domaine : https://<ton-sous-domaine>
 # (le conteneur écoute sur le port 8080, Coolify le détecte via SERVICE_FQDN_WEB_8080 ci-dessous).
 
 services:
@@ -15,8 +15,8 @@ services:
     restart: unless-stopped
     environment:
       # Obligatoires. Les passkeys sont liées pour toujours à RP_ID : à fixer avant le premier profil.
-      - RP_ID=${RP_ID:?Mettre RP_ID, par ex. gym.aguiar-home.fr}
-      - ORIGIN=${ORIGIN:?Mettre ORIGIN, par ex. https://gym.aguiar-home.fr}
+      - RP_ID=${RP_ID:?Mettre RP_ID, le nom de domaine seul, par ex. gym.example.com}
+      - ORIGIN=${ORIGIN:?Mettre ORIGIN, par ex. https://gym.example.com}
       - RP_NAME=${RP_NAME:-openGym}
       - PORT=3000
       - DATA_DIR=/data
@@ -25,9 +25,14 @@ services:
       - FIRST_USER_ADMIN=${FIRST_USER_ADMIN:-1}
       - SESSION_DAYS=${SESSION_DAYS:-30}
       - DEFAULT_LANG=${DEFAULT_LANG:-fr}
-      # Après avoir créé ton profil : INVITE_ONLY=1 et ALLOW_GUEST=0 pour une instance privée.
-      - INVITE_ONLY=${INVITE_ONLY:-}
-      - ALLOW_GUEST=${ALLOW_GUEST:-}
+      # Instance privée, verrouillée par défaut : inscription sur code d'invitation seulement
+      # (codes créés par l'admin), pas de « Continuer sans compte », pas de tokens d'API.
+      # ATTENTION : sur une instance VIDE, INVITE_ONLY=1 empêche aussi le premier profil.
+      # Pour l'installer : mettre INVITE_ONLY=0 dans Coolify, créer son profil, retirer la variable.
+      - INVITE_ONLY=${INVITE_ONLY:-1}
+      - ALLOW_GUEST=${ALLOW_GUEST:-0}
+      - API_TOKENS=${API_TOKENS:-off}
+      - PASSWORD_LOGIN=${PASSWORD_LOGIN:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
       # Profils, passkeys, séances, clé de session, médias : C'EST CE QU'IL FAUT SAUVEGARDER.
