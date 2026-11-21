@@ -7,7 +7,7 @@
 #  - volumes nommés : les données survivent aux redéploiements et sont sauvegardables par Coolify.
 #
 # Dans Coolify, sur le service « web », mettre le domaine : https://gym.aguiar-home.fr
-# (le conteneur écoute sur le port 80, Coolify le détecte via SERVICE_FQDN_WEB_80 ci-dessous).
+# (le conteneur écoute sur le port 8080, Coolify le détecte via SERVICE_FQDN_WEB_8080 ci-dessous).
 
 services:
   api:
@@ -40,9 +40,11 @@ services:
     depends_on:
       - api
     environment:
-      # Dit à Coolify que le service public est celui-ci, sur le port 80 du conteneur.
-      - SERVICE_FQDN_WEB_80
-      - NGINX_PORT=80
+      # Dit à Coolify que le service public est celui-ci, sur le port 8080 du conteneur.
+      # 8080 et pas 80 : l'image déclare EXPOSE 8080, et Coolify n'écrit pas toujours
+      # l'étiquette de port Traefik, qui vise alors ce port exposé (sinon : 502 Bad Gateway).
+      - SERVICE_FQDN_WEB_8080
+      - NGINX_PORT=8080
       - BACKEND=api
       - PORT=3000
       - RESOLVER=127.0.0.11
