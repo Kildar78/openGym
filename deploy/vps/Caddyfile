@@ -1,0 +1,19 @@
+# Option 1 : Caddy (certificat Let's Encrypt automatique).
+# Ajoutez ce bloc à /etc/caddy/Caddyfile, remplacez le domaine, puis : sudo systemctl reload caddy
+
+gym.example.com {
+	encode zstd gzip
+
+	# Vidéos d'exercices : jusqu'à 100 Mo par défaut côté openGym.
+	request_body {
+		max_size 112MB
+	}
+
+	reverse_proxy 127.0.0.1:8080 {
+		# Une requête du Coach IA ou un gros envoi peut durer plusieurs minutes.
+		transport http {
+			read_timeout 10m
+			write_timeout 10m
+		}
+	}
+}

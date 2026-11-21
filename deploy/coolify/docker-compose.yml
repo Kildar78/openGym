@@ -1,0 +1,57 @@
+# openGym pour Coolify (build pack « Docker Compose »), avec les images précompilées.
+#
+# Différences avec le docker-compose.yml de la racine :
+#  - pas de « ports: » : c'est le Traefik de Coolify qui expose le service web sur le domaine ;
+#  - pas de « env_file: .env » : les variables se règlent dans l'onglet Environment Variables ;
+#  - pas de « build: » : rien à compiler sur le VPS, les mises à jour sont un simple Redeploy ;
+#  - volumes nommés : les données survivent aux redéploiements et sont sauvegardables par Coolify.
+#
+# Dans Coolify, sur le service « web », mettre le domaine : https://gym.aguiar-home.fr
+# (le conteneur écoute sur le port 80, Coolify le détecte via SERVICE_FQDN_WEB_80 ci-dessous).
+
+services:
+  api:
+    image: ghcr.io/duartesantos8/opengym-api:latest
+    restart: unless-stopped
+    environment:
+      # Obligatoires. Les passkeys sont liées pour toujours à RP_ID : à fixer avant le premier profil.
+      - RP_ID=${RP_ID:?Mettre RP_ID, par ex. gym.aguiar-home.fr}
+      - ORIGIN=${ORIGIN:?Mettre ORIGIN, par ex. https://gym.aguiar-home.fr}
+      - RP_NAME=${RP_NAME:-openGym}
+      - PORT=3000
+      - DATA_DIR=/data
+      - TRUST_PROXY=1
+      # Le premier profil créé devient admin.
+      - FIRST_USER_ADMIN=${FIRST_USER_ADMIN:-1}
+      - SESSION_DAYS=${SESSION_DAYS:-30}
+      - DEFAULT_LANG=${DEFAULT_LANG:-fr}
+      # Après avoir créé ton profil : INVITE_ONLY=1 et ALLOW_GUEST=0 pour une instance privée.
+      - INVITE_ONLY=${INVITE_ONLY:-}
+      - ALLOW_GUEST=${ALLOW_GUEST:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
+    volumes:
+      # Profils, passkeys, séances, clé de session, médias : C'EST CE QU'IL FAUT SAUVEGARDER.
+      - opengym-data:/data
+      - opengym-coach-auth:/coach-auth
+
+  web:
+    image: ghcr.io/duartesantos8/opengym-web:latest
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      # Dit à Coolify que le service public est celui-ci, sur le port 80 du conteneur.
+      - SERVICE_FQDN_WEB_80
+      - NGINX_PORT=80
+      - BACKEND=api
+      - PORT=3000
+      - RESOLVER=127.0.0.11
+      - CF_CONNECTING_IP=${CF_CONNECTING_IP:-}
+      - BASE_PATH=
+      - MEDIA_UPLOAD_MAX=112m
+      - MCP_BACKEND=mcp
+      - MCP_PORT=3100
+
+volumes:
+  opengym-data:
+  opengym-coach-auth:
