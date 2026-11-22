@@ -11,7 +11,7 @@
 
 services:
   api:
-    image: ghcr.io/duartesantos8/opengym-api:latest
+    image: ghcr.io/duartesantos8/opengym-api@sha256:397c83e9ac33a413bc8f21e66b2e55038100fc7f9da900d80be28b30fbb12ea8
     restart: unless-stopped
     environment:
       # Obligatoires. Les passkeys sont liées pour toujours à RP_ID : à fixer avant le premier profil.
@@ -40,7 +40,7 @@ services:
       - opengym-coach-auth:/coach-auth
 
   web:
-    image: ghcr.io/duartesantos8/opengym-web:latest
+    image: ghcr.io/duartesantos8/opengym-web@sha256:e621677554302a0e1745e3b8c90acddc7d7149e118c4d683d51c13aa88f47d27
     restart: unless-stopped
     depends_on:
       - api
